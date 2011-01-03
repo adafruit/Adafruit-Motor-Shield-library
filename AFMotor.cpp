@@ -81,11 +81,13 @@ inline void initPWM1(uint8_t freq) {
     TCCR2A |= _BV(COM2A1) | _BV(WGM20) | _BV(WGM21); // fast PWM, turn on oc2a
     TCCR2B = freq & 0x7;
     OCR2A = 0;
-#elif defined(__AVR_ATmega1280__) 
+#elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
     // on arduino mega, pin 11 is now PB5 (OC1A)
     TCCR1A |= _BV(COM1A1) | _BV(WGM10); // fast PWM, turn on oc1a
     TCCR1B = (freq & 0x7) | _BV(WGM12);
     OCR1A = 0;
+#else
+   #error "This chip is not supported!"
 #endif
     pinMode(11, OUTPUT);
 }
@@ -98,9 +100,11 @@ inline void setPWM1(uint8_t s) {
     defined(__AVR_ATmega328P__)
     // use PWM from timer2A on PB3 (Arduino pin #11)
     OCR2A = s;
-#elif defined(__AVR_ATmega1280__) 
+#elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
     // on arduino mega, pin 11 is now PB5 (OC1A)
     OCR1A = s;
+#else
+   #error "This chip is not supported!"
 #endif
 }
 
@@ -114,12 +118,15 @@ inline void initPWM2(uint8_t freq) {
     TCCR2A |= _BV(COM2B1) | _BV(WGM20) | _BV(WGM21); // fast PWM, turn on oc2b
     TCCR2B = freq & 0x7;
     OCR2B = 0;
-#elif defined(__AVR_ATmega1280__) 
+#elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
     // on arduino mega, pin 3 is now PE5 (OC3C)
     TCCR3A |= _BV(COM1C1) | _BV(WGM10); // fast PWM, turn on oc3c
     TCCR3B = (freq & 0x7) | _BV(WGM12);
     OCR3C = 0;
+#else
+   #error "This chip is not supported!"
 #endif
+
     pinMode(3, OUTPUT);
 }
 
@@ -131,9 +138,11 @@ inline void setPWM2(uint8_t s) {
     defined(__AVR_ATmega328P__)
     // use PWM from timer2A on PB3 (Arduino pin #11)
     OCR2B = s;
-#elif defined(__AVR_ATmega1280__) 
+#elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
     // on arduino mega, pin 11 is now PB5 (OC1A)
     OCR3C = s;
+#else
+   #error "This chip is not supported!"
 #endif
 }
 
@@ -147,12 +156,14 @@ inline void initPWM3(uint8_t freq) {
     TCCR0A |= _BV(COM0A1) | _BV(WGM00) | _BV(WGM01); // fast PWM, turn on OC0A
     //TCCR0B = freq & 0x7;
     OCR0A = 0;
-#elif defined(__AVR_ATmega1280__) 
+#elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
     // on arduino mega, pin 6 is now PH3 (OC4A)
     TCCR4A |= _BV(COM1A1) | _BV(WGM10); // fast PWM, turn on oc4a
     TCCR4B = (freq & 0x7) | _BV(WGM12);
     //TCCR4B = 1 | _BV(WGM12);
     OCR4A = 0;
+#else
+   #error "This chip is not supported!"
 #endif
     pinMode(6, OUTPUT);
 }
@@ -165,9 +176,11 @@ inline void setPWM3(uint8_t s) {
     defined(__AVR_ATmega328P__)
     // use PWM from timer0A on PB3 (Arduino pin #6)
     OCR0A = s;
-#elif defined(__AVR_ATmega1280__) 
+#elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
     // on arduino mega, pin 6 is now PH3 (OC4A)
     OCR4A = s;
+#else
+   #error "This chip is not supported!"
 #endif
 }
 
@@ -183,12 +196,14 @@ inline void initPWM4(uint8_t freq) {
     TCCR0A |= _BV(COM0B1) | _BV(WGM00) | _BV(WGM01); // fast PWM, turn on oc0a
     //TCCR0B = freq & 0x7;
     OCR0B = 0;
-#elif defined(__AVR_ATmega1280__) 
+#elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
     // on arduino mega, pin 5 is now PE3 (OC3A)
     TCCR3A |= _BV(COM1A1) | _BV(WGM10); // fast PWM, turn on oc3a
     TCCR3B = (freq & 0x7) | _BV(WGM12);
     //TCCR4B = 1 | _BV(WGM12);
     OCR3A = 0;
+#else
+   #error "This chip is not supported!"
 #endif
     pinMode(5, OUTPUT);
 }
@@ -201,9 +216,11 @@ inline void setPWM4(uint8_t s) {
     defined(__AVR_ATmega328P__)
     // use PWM from timer0A on PB3 (Arduino pin #6)
     OCR0B = s;
-#elif defined(__AVR_ATmega1280__) 
+#elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
     // on arduino mega, pin 6 is now PH3 (OC4A)
     OCR3A = s;
+#else
+   #error "This chip is not supported!"
 #endif
 }
 
@@ -416,9 +433,11 @@ uint8_t AF_Stepper::onestep(uint8_t dir, uint8_t style) {
     defined(__AVR_ATmega328P__)
     ocra = OCR2A;
     ocrb = OCR2B;
-#elif defined(__AVR_ATmega1280__) 
+#elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
     ocra = OCR1A;
     ocrb = OCR3C;
+#else
+   #error "This chip is not supported!"
 #endif
 
     if (style == MICROSTEP) {
@@ -439,9 +458,11 @@ uint8_t AF_Stepper::onestep(uint8_t dir, uint8_t style) {
     defined(__AVR_ATmega328P__)
     ocra = OCR0A;
     ocrb = OCR0B;
-#elif defined(__AVR_ATmega1280__) 
+#elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
     ocra = OCR4A;
     ocrb = OCR3A;
+#else
+   #error "This chip is not supported!"
 #endif
 
     if (style == MICROSTEP) {
