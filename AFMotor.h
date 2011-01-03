@@ -13,7 +13,7 @@
 #define MICROSTEPPING 1
 
 #ifdef MICROSTEPPING
-#define MICROSTEP 8
+#define MICROSTEPS 8         // 8, 16 & 32 are popular
 #endif
 
 #define MOTOR12_64KHZ _BV(CS20)  // no prescale
@@ -42,7 +42,7 @@
 #define SINGLE 1
 #define DOUBLE 2
 #define INTERLEAVE 3
-
+#define MICROSTEP 4
 
 /*
 #define LATCH 4
@@ -99,6 +99,8 @@ class AF_Stepper {
   uint8_t steppernum;
   uint32_t usperstep, steppingcounter;
  private:
+  uint8_t currentstep;
+
 };
 
 uint8_t getlatchstate(void);

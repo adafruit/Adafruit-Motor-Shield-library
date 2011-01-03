@@ -9,8 +9,6 @@
 
 static uint8_t latch_state;
 
-#define MICROSTEPS 16  // 8, 16 & 32 are popular
-
 //#define MOTORDEBUG 1
 
 AFMotorController::AFMotorController(void) {
@@ -310,6 +308,7 @@ AF_Stepper::AF_Stepper(uint16_t steps, uint8_t num) {
 
   revsteps = steps;
   steppernum = num;
+  currentstep = 0;
 
   if (steppernum == 1) {
     latch_state &= ~_BV(MOTOR1_A) & ~_BV(MOTOR1_B) &
@@ -480,38 +479,23 @@ uint8_t AF_Stepper::onestep(uint8_t dir, uint8_t style) {
   Serial.print("\t");
 #endif
 
-  // OK next determine what step we are at 
-  if ((latch_state & (a | b)) == (a | b))
-    step = 1 * MICROSTEPS; 
-  else if ((latch_state & (b | c)) == (b | c))
-    step = 3 * MICROSTEPS; 
-  else if ((latch_state & (c | d)) == (c | d))
-    step = 5 * MICROSTEPS;
-  else if ((latch_state & (d | a)) == (d | a))
-    step = 7 * MICROSTEPS;
-  else if (latch_state & a)
-    step = 0;
-  else if (latch_state & b)
-    step = 2 * MICROSTEPS;
-  else if (latch_state & c)
-    step = 4 * MICROSTEPS;
-  else
-    step = 6 * MICROSTEPS;
-
   //Serial.print("step "); Serial.print(step, DEC); Serial.print("\t");
   // next determine what sort of stepping procedure we're up to
   if (style == SINGLE) {
-    if ((step/MICROSTEPS) % 2) { // we're at an odd step, weird
-      if (dir == FORWARD)
-	step = (step + MICROSTEPS) % (8*MICROSTEPS);
-      else
-	step = (step + 7*MICROSTEPS) % (8*MICROSTEPS);
+    if ((currentstep/(MICROSTEPS/2)) % 2) { // we're at an odd step, weird
+      if (dir == FORWARD) {
+	currentstep += MICROSTEPS/2;
+      }
+      else {
+	currentstep -= MICROSTEPS/2;
+      }
     } else {           // go to the next even step
-      if (dir == FORWARD)
-	step = (step + 2*MICROSTEPS) % (8*MICROSTEPS);
-      else
-	step = (step + 6*MICROSTEPS) % (8*MICROSTEPS);  
-
+      if (dir == FORWARD) {
+	currentstep += MICROSTEPS;
+      }
+      else {
+	currentstep -= MICROSTEPS;
+      }
     }
 #ifdef MICROSTEPPING
     ocra = 255;
@@ -519,26 +503,31 @@ uint8_t AF_Stepper::onestep(uint8_t dir, uint8_t style) {
 #endif
 
   } else if (style == DOUBLE) {
-    if (! (step/MICROSTEPS % 2)) { // we're at an even step, weird
-      if (dir == FORWARD)
-	step = (step + MICROSTEPS) % (8*MICROSTEPS);
-      else
-	step = (step + 7*MICROSTEPS) % (8*MICROSTEPS);
+    if (! (currentstep/(MICROSTEPS/2) % 2)) { // we're at an even step, weird
+      if (dir == FORWARD) {
+	currentstep += MICROSTEPS/2;
+      } 
+      else {
+	currentstep -= MICROSTEPS/2;
+      }
     } else {           // go to the next odd step
-      if (dir == FORWARD)
-	step = (step + 2*MICROSTEPS) % (8*MICROSTEPS);
-      else
-	step = (step + 6*MICROSTEPS) % (8*MICROSTEPS);
+      if (dir == FORWARD) {
+	currentstep += MICROSTEPS;
+      }
+      else {
+	currentstep += MICROSTEPS;
+      }
     }
 #ifdef MICROSTEPPING
     ocra = 255;
     ocrb = 255;
 #endif
   } else if (style == INTERLEAVE) {
-     if (dir == FORWARD)
-       step = (step + 1*MICROSTEPS) % (8*MICROSTEPS);
-     else
-       step = (step + 7*MICROSTEPS) % (8*MICROSTEPS);
+    if (dir == FORWARD) {
+       currentstep += MICROSTEPS/2;
+    } else {
+       currentstep -= MICROSTEPS/2;
+    }
 #ifdef MICROSTEPPING
     ocra = 255;
     ocrb = 255;
@@ -667,13 +656,15 @@ uint8_t AF_Stepper::onestep(uint8_t dir, uint8_t style) {
       }
     }
   }
-
+  currentstep += MICROSTEPS*4;
+  currentstep %= MICROSTEPS*4;
+  Serial.print("current step: "); Serial.println(currentstep, DEC);
 
   //Serial.print(" -> step = "); Serial.print(step/MICROSTEPS, DEC); Serial.print("\t");
 
   if (steppernum == 1) {
     setPWM1(ocra);
-     setPWM2(ocrb);
+    setPWM2(ocrb);
   } else if (steppernum == 2) {
     setPWM3(ocra);
     setPWM4(ocrb);
@@ -686,7 +677,7 @@ uint8_t AF_Stepper::onestep(uint8_t dir, uint8_t style) {
 
   //Serial.println(step, DEC);
 
-  switch (step/MICROSTEPS) {
+  switch (currentstep/(MICROSTEPS/2)) {
   case 0:
     latch_state |= a; // energize coil 1 only
     break;
