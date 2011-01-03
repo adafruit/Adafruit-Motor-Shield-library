@@ -13,7 +13,8 @@
 #define MICROSTEPPING 1
 
 #ifdef MICROSTEPPING
-#define MICROSTEPS 8         // 8, 16 & 32 are popular
+#define MICROSTEPS 16         // 8 or 16
+
 #endif
 
 #define MOTOR12_64KHZ _BV(CS20)  // no prescale

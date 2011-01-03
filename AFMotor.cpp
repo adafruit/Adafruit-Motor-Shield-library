@@ -11,6 +11,14 @@ static uint8_t latch_state;
 
 //#define MOTORDEBUG 1
 
+#ifdef MICROSTEPPING
+#if (MICROSTEPS == 8)
+uint8_t microstepcurve[] = {0, 31, 63, 91, 127, 159, 191, 223, 255};
+#elif (MICROSTEPS == 16)
+uint8_t microstepcurve[] = {0, 15, 31, 47, 63, 79, 91, 111, 127, 143, 159, 175, 191, 207, 223, 239, 255};
+#endif
+#endif
+
 AFMotorController::AFMotorController(void) {
 }
 
@@ -413,8 +421,6 @@ void AF_Stepper::step(uint16_t steps, uint8_t dir,  uint8_t style) {
 
 uint8_t AF_Stepper::onestep(uint8_t dir, uint8_t style) {
   uint8_t a, b, c, d;
-  uint8_t step;
-  uint8_t mstep = 0;
 #ifdef MICROSTEPPING
   uint8_t ocrb, ocra;
 #endif
@@ -423,61 +429,14 @@ uint8_t AF_Stepper::onestep(uint8_t dir, uint8_t style) {
     b = _BV(MOTOR2_A);
     c = _BV(MOTOR1_B);
     d = _BV(MOTOR2_B);
-
-#ifdef MICROSTEPPING
-#if defined(__AVR_ATmega8__) || \
-    defined(__AVR_ATmega48__) || \
-    defined(__AVR_ATmega88__) || \
-    defined(__AVR_ATmega168__) || \
-    defined(__AVR_ATmega328P__)
-    ocra = OCR2A;
-    ocrb = OCR2B;
-#elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
-    ocra = OCR1A;
-    ocrb = OCR3C;
-#else
-   #error "This chip is not supported!"
-#endif
-
-    if (style == MICROSTEP) {
-      //TCCR2B = _BV(CS21);
-    }
-#endif
   } else if (steppernum == 2) {
     a = _BV(MOTOR3_A);
     b = _BV(MOTOR4_A);
     c = _BV(MOTOR3_B);
     d = _BV(MOTOR4_B);
-
-#ifdef MICROSTEPPING
-#if defined(__AVR_ATmega8__) || \
-    defined(__AVR_ATmega48__) || \
-    defined(__AVR_ATmega88__) || \
-    defined(__AVR_ATmega168__) || \
-    defined(__AVR_ATmega328P__)
-    ocra = OCR0A;
-    ocrb = OCR0B;
-#elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
-    ocra = OCR4A;
-    ocrb = OCR3A;
-#else
-   #error "This chip is not supported!"
-#endif
-
-    if (style == MICROSTEP) {
-      //TCCR0B = _BV(CS00);
-    }   
-#endif
-
   } else {
     return 0;
   }
-
-#ifdef MOTORDEBUG
-  Serial.print("a = "); Serial.print(ocra, DEC);
-  Serial.print(" b = "); Serial.print(ocrb, DEC);
-  Serial.print("\t");
-#endif
 
   //Serial.print("step "); Serial.print(step, DEC); Serial.print("\t");
   // next determine what sort of stepping procedure we're up to
@@ -533,134 +492,44 @@ uint8_t AF_Stepper::onestep(uint8_t dir, uint8_t style) {
     ocrb = 255;
 #endif
   } 
+
 #ifdef MICROSTEPPING
-  else if (style == MICROSTEP) {
-
-    //Serial.print("Step #"); Serial.print(step/MICROSTEPS, DEC); Serial.print("\t");
+  if (style == MICROSTEP) {
     if (dir == FORWARD) {
-
-      // if at even step, make sure its 'odd'
-      if (! (step/MICROSTEPS) % 2) {
-	step = (step + MICROSTEPS) % (8*MICROSTEPS);
-      }
-
-      // fix hiccups from changing direction
-      if (((ocra == 255) && ((step/MICROSTEPS)%4 == 3)) ||
-	  ((ocrb == 255) && ((step/MICROSTEPS)%4 == 1))) {
-	step += 2*MICROSTEPS;
-	step %= 8*MICROSTEPS;
-      }
-
-      if ((step == MICROSTEPS) || (step == 5*MICROSTEPS)) {
-	// get the current microstep
-	if (ocrb == 255)
-	  mstep = MICROSTEPS;
-	else
-	  mstep = ocrb / (256UL / MICROSTEPS);
-#ifdef MOTORDEBUG
-	Serial.print("uStep = "); Serial.print(mstep, DEC);
-#endif
-	// ok now go to next step
-	mstep++;
-	mstep %= (MICROSTEPS+1);
-	if (mstep == MICROSTEPS)
-	  ocrb = 255;
-	else 
-	  ocrb = mstep * (256UL / MICROSTEPS);
-	ocra = 255 - ocrb;
-#ifdef MOTORDEBUG
-	Serial.print(" -> "); Serial.println(mstep, DEC);
-#endif
-	if (mstep == MICROSTEPS)
-	  step = (step + 2*MICROSTEPS) % (8*MICROSTEPS);
-      } else {
-	// get the current microstep
-	if (ocrb == 255)
-	  mstep = MICROSTEPS;
-	else
-	  mstep = ocrb / (256UL / MICROSTEPS);
-#ifdef MOTORDEBUG
-	Serial.print("uStep = "); Serial.print(mstep, DEC);
-#endif
-	// ok now go to next step
-	mstep += MICROSTEPS;
-	mstep %= (MICROSTEPS+1);
-	if (mstep == MICROSTEPS)
-	  ocrb = 255;
-	else 
-	  ocrb = mstep * (256UL / MICROSTEPS);
-	ocra = 255 - ocrb;
-#ifdef MOTORDEBUG
-	Serial.print(" +> "); Serial.println(mstep, DEC);
-#endif
-	if (mstep == 0)
-	  step = (step + 2*MICROSTEPS) % (8*MICROSTEPS);
-      }
+      currentstep++;
     } else {
+      // BACKWARDS
+      currentstep--;
+    }
 
-      // fix hiccups from changing direction
-      if (((ocra == 255) && ((step/MICROSTEPS)%4 == 1)) ||
-	  ((ocrb == 255) && ((step/MICROSTEPS)%4 == 3))) {
-	step = (step + 6*MICROSTEPS);
-	step %= (8*MICROSTEPS);
-      }
+    currentstep += MICROSTEPS*4;
+    currentstep %= MICROSTEPS*4;
 
-      // if at even step, make sure its 'odd'
-      if (! (step/MICROSTEPS % 2)) {
-	step = (step + 7*MICROSTEPS) % (8*MICROSTEPS);
-      }
-      if ((step == MICROSTEPS) || (step == 5*MICROSTEPS)) {
-	// get the current microstep
-	if (ocrb == 255)
-	  mstep = MICROSTEPS;
-	else
-	  mstep = ocrb / (256UL / MICROSTEPS);
-#ifdef MOTORDEBUG
-	Serial.print(" uStep = "); Serial.print(mstep, DEC);
-#endif
-	// ok now go to next step
-	mstep += MICROSTEPS;
-	mstep %= (MICROSTEPS+1);
-	if (mstep == MICROSTEPS)
-	  ocrb = 255;
-	else
-	  ocrb = mstep * (256UL / MICROSTEPS);
-	ocra = 255 - ocrb;
-#ifdef MOTORDEBUG
-	Serial.print(" !> "); Serial.println(mstep, DEC);
-#endif
-	if (mstep == 0)
-	  step = (step + 6*MICROSTEPS) % (8*MICROSTEPS);
-      } else {
-	// get the current microstep
-	if (ocrb == 255)
-	  mstep = MICROSTEPS;
-	else
-	  mstep = ocrb / (256UL / MICROSTEPS);
-#ifdef MOTORDEBUG
-	Serial.print("uStep = "); Serial.print(mstep, DEC);
-#endif
-	// ok now go to next step
-	mstep++;
-	mstep %= (MICROSTEPS + 1);
-	if (mstep == MICROSTEPS)
-	  ocrb = 255;
-	else 
-	  ocrb = mstep * (256UL / MICROSTEPS);
-	ocra = 255 - ocrb;
-#ifdef MOTORDEBUG
-	Serial.print(" *> "); Serial.println(mstep, DEC);
-#endif
-	if (mstep == MICROSTEPS)
-	  step = (step + 6*MICROSTEPS) % (8*MICROSTEPS);
-      }
+    ocra = ocrb = 0;
+    if ( (currentstep >= 0) && (currentstep < MICROSTEPS)) {
+      ocra = microstepcurve[MICROSTEPS - currentstep];
+      ocrb = microstepcurve[currentstep];
+    } else if  ( (currentstep >= MICROSTEPS) && (currentstep < MICROSTEPS*2)) {
+      ocra = microstepcurve[currentstep - MICROSTEPS];
+      ocrb = microstepcurve[MICROSTEPS*2 - currentstep];
+    } else if  ( (currentstep >= MICROSTEPS*2) && (currentstep < MICROSTEPS*3)) {
+      ocra = microstepcurve[MICROSTEPS*3 - currentstep];
+      ocrb = microstepcurve[currentstep - MICROSTEPS*2];
+    } else if  ( (currentstep >= MICROSTEPS*3) && (currentstep < MICROSTEPS*4)) {
+      ocra = microstepcurve[currentstep - MICROSTEPS*3];
+      ocrb = microstepcurve[MICROSTEPS*4 - currentstep];
     }
   }
+#endif  // microstepping
+
   currentstep += MICROSTEPS*4;
   currentstep %= MICROSTEPS*4;
-  Serial.print("current step: "); Serial.println(currentstep, DEC);
+  //Serial.print("current step: "); Serial.println(currentstep, DEC);
 
-  //Serial.print(" -> step = "); Serial.print(step/MICROSTEPS, DEC); Serial.print("\t");
+
+#ifdef MICROSTEPPING
+  //Serial.print(" pwmA = "); Serial.print(ocra, DEC); 
+  //Serial.print(" pwmB = "); Serial.println(ocrb, DEC); 
 
   if (steppernum == 1) {
     setPWM1(ocra);
@@ -669,41 +538,53 @@ uint8_t AF_Stepper::onestep(uint8_t dir, uint8_t style) {
     setPWM3(ocra);
     setPWM4(ocrb);
   }
+#endif
 
-#endif  // microstepping
 
   // release all
   latch_state &= ~a & ~b & ~c & ~d; // all motor pins to 0
 
   //Serial.println(step, DEC);
-
-  switch (currentstep/(MICROSTEPS/2)) {
-  case 0:
-    latch_state |= a; // energize coil 1 only
-    break;
-  case 1:
-    latch_state |= a | b; // energize coil 1+2
-    break;
-  case 2:
-    latch_state |= b; // energize coil 2 only
-    break;
-  case 3:
-    latch_state |= b | c; // energize coil 2+3
-    break;
-  case 4:
-    latch_state |= c; // energize coil 3 only
-    break; 
-  case 5:
-    latch_state |= c | d; // energize coil 3+4
-    break;
-  case 6:
-    latch_state |= d; // energize coil 4 only
-    break;
-  case 7:
-    latch_state |= d | a; // energize coil 1+4
-    break;
+  if (style == MICROSTEP) {
+    if ((currentstep >= 0) && (currentstep < MICROSTEPS))
+      latch_state |= a | b;
+    if ((currentstep >= MICROSTEPS) && (currentstep < MICROSTEPS*2))
+      latch_state |= b | c;
+    if ((currentstep >= MICROSTEPS*2) && (currentstep < MICROSTEPS*3))
+      latch_state |= c | d;
+    if ((currentstep >= MICROSTEPS*3) && (currentstep < MICROSTEPS*4))
+      latch_state |= d | a;
+  } else {
+    switch (currentstep/(MICROSTEPS/2)) {
+    case 0:
+      latch_state |= a; // energize coil 1 only
+      break;
+    case 1:
+      latch_state |= a | b; // energize coil 1+2
+      break;
+    case 2:
+      latch_state |= b; // energize coil 2 only
+      break;
+    case 3:
+      latch_state |= b | c; // energize coil 2+3
+      break;
+    case 4:
+      latch_state |= c; // energize coil 3 only
+      break; 
+    case 5:
+      latch_state |= c | d; // energize coil 3+4
+      break;
+    case 6:
+      latch_state |= d; // energize coil 4 only
+      break;
+    case 7:
+      latch_state |= d | a; // energize coil 1+4
+      break;
+    }
   }
+
+ 
   MC.latch_tx();
-  return mstep;
+  return currentstep;
 }
 
