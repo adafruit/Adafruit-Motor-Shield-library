@@ -9,14 +9,10 @@
 
 static uint8_t latch_state;
 
-//#define MOTORDEBUG 1
-
-#ifdef MICROSTEPPING
 #if (MICROSTEPS == 8)
-uint8_t microstepcurve[] = {0, 31, 63, 91, 127, 159, 191, 223, 255};
+uint8_t microstepcurve[] = {0, 50, 98, 142, 180, 212, 236, 250, 255};
 #elif (MICROSTEPS == 16)
-uint8_t microstepcurve[] = {0, 15, 31, 47, 63, 79, 91, 111, 127, 143, 159, 175, 191, 207, 223, 239, 255};
-#endif
+uint8_t microstepcurve[] = {0, 25, 50, 74, 98, 120, 141, 162, 180, 197, 212, 225, 236, 244, 250, 253, 255};
 #endif
 
 AFMotorController::AFMotorController(void) {
@@ -329,13 +325,11 @@ AF_Stepper::AF_Stepper(uint16_t steps, uint8_t num) {
     digitalWrite(11, HIGH);
     digitalWrite(3, HIGH);
 
-#ifdef MICROSTEPPING
     // use PWM for microstepping support
     initPWM1(MOTOR12_64KHZ);
     initPWM2(MOTOR12_64KHZ);
     setPWM1(255);
     setPWM2(255);
-#endif
 
   } else if (steppernum == 2) {
     latch_state &= ~_BV(MOTOR3_A) & ~_BV(MOTOR3_B) &
@@ -348,14 +342,12 @@ AF_Stepper::AF_Stepper(uint16_t steps, uint8_t num) {
     digitalWrite(5, HIGH);
     digitalWrite(6, HIGH);
 
-#ifdef MICROSTEPPING    
     // use PWM for microstepping support
     // use PWM for microstepping support
     initPWM3(1);
     initPWM4(1);
     setPWM3(255);
     setPWM4(255);
-#endif
   }
 }
 
@@ -383,7 +375,6 @@ void AF_Stepper::step(uint16_t steps, uint8_t dir,  uint8_t style) {
   if (style == INTERLEAVE) {
     uspers /= 2;
   }
-#ifdef MICROSTEPPING
  else if (style == MICROSTEP) {
     uspers /= MICROSTEPS;
     steps *= MICROSTEPS;
@@ -391,7 +382,6 @@ void AF_Stepper::step(uint16_t steps, uint8_t dir,  uint8_t style) {
     Serial.print("steps = "); Serial.println(steps, DEC);
 #endif
   }
-#endif
 
   while (steps--) {
     ret = onestep(dir, style);
@@ -402,9 +392,7 @@ void AF_Stepper::step(uint16_t steps, uint8_t dir,  uint8_t style) {
       steppingcounter -= 1000;
     }
   }
-#ifdef MICROSTEPPING
   if (style == MICROSTEP) {
-    //Serial.print("last ret = "); Serial.println(ret, DEC);
     while ((ret != 0) && (ret != MICROSTEPS)) {
       ret = onestep(dir, style);
       delay(uspers/1000); // in ms
@@ -415,15 +403,14 @@ void AF_Stepper::step(uint16_t steps, uint8_t dir,  uint8_t style) {
       } 
     }
   }
-#endif
-
 }
 
 uint8_t AF_Stepper::onestep(uint8_t dir, uint8_t style) {
   uint8_t a, b, c, d;
-#ifdef MICROSTEPPING
   uint8_t ocrb, ocra;
-#endif
+
+  ocra = ocrb = 255;
+
   if (steppernum == 1) {
     a = _BV(MOTOR1_A);
     b = _BV(MOTOR2_A);
@@ -438,7 +425,6 @@ uint8_t AF_Stepper::onestep(uint8_t dir, uint8_t style) {
     return 0;
   }
 
-  //Serial.print("step "); Serial.print(step, DEC); Serial.print("\t");
   // next determine what sort of stepping procedure we're up to
   if (style == SINGLE) {
     if ((currentstep/(MICROSTEPS/2)) % 2) { // we're at an odd step, weird
@@ -456,11 +442,6 @@ uint8_t AF_Stepper::onestep(uint8_t dir, uint8_t style) {
 	currentstep -= MICROSTEPS;
       }
     }
-#ifdef MICROSTEPPING
-    ocra = 255;
-    ocrb = 255;
-#endif
-
   } else if (style == DOUBLE) {
     if (! (currentstep/(MICROSTEPS/2) % 2)) { // we're at an even step, weird
       if (dir == FORWARD) {
@@ -477,23 +458,14 @@ uint8_t AF_Stepper::onestep(uint8_t dir, uint8_t style) {
 	currentstep += MICROSTEPS;
       }
     }
-#ifdef MICROSTEPPING
-    ocra = 255;
-    ocrb = 255;
-#endif
   } else if (style == INTERLEAVE) {
     if (dir == FORWARD) {
        currentstep += MICROSTEPS/2;
     } else {
        currentstep -= MICROSTEPS/2;
     }
-#ifdef MICROSTEPPING
-    ocra = 255;
-    ocrb = 255;
-#endif
   } 
 
-#ifdef MICROSTEPPING
   if (style == MICROSTEP) {
     if (dir == FORWARD) {
       currentstep++;
@@ -520,16 +492,15 @@ uint8_t AF_Stepper::onestep(uint8_t dir, uint8_t style) {
       ocrb = microstepcurve[MICROSTEPS*4 - currentstep];
     }
   }
-#endif  // microstepping
 
   currentstep += MICROSTEPS*4;
   currentstep %= MICROSTEPS*4;
-  //Serial.print("current step: "); Serial.println(currentstep, DEC);
 
-
-#ifdef MICROSTEPPING
-  //Serial.print(" pwmA = "); Serial.print(ocra, DEC); 
-  //Serial.print(" pwmB = "); Serial.println(ocrb, DEC); 
+#ifdef MOTORDEBUG
+  Serial.print("current step: "); Serial.println(currentstep, DEC);
+  Serial.print(" pwmA = "); Serial.print(ocra, DEC); 
+  Serial.print(" pwmB = "); Serial.println(ocrb, DEC); 
+#endif
 
   if (steppernum == 1) {
     setPWM1(ocra);
@@ -538,7 +509,6 @@ uint8_t AF_Stepper::onestep(uint8_t dir, uint8_t style) {
     setPWM3(ocra);
     setPWM4(ocrb);
   }
-#endif
 
 
   // release all

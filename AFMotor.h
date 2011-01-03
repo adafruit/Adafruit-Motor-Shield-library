@@ -8,14 +8,9 @@
 #include <inttypes.h>
 #include <avr/io.h>
 
-// comment out this line to remove microstepping support
-// for smaller library. Be sure to delete the old library objects!
-#define MICROSTEPPING 1
+//#define MOTORDEBUG 1
 
-#ifdef MICROSTEPPING
 #define MICROSTEPS 16         // 8 or 16
-
-#endif
 
 #define MOTOR12_64KHZ _BV(CS20)  // no prescale
 #define MOTOR12_8KHZ _BV(CS21)   // divide by 8
