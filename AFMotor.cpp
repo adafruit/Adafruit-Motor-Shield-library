@@ -446,16 +446,14 @@ uint8_t AF_Stepper::onestep(uint8_t dir, uint8_t style) {
     if (! (currentstep/(MICROSTEPS/2) % 2)) { // we're at an even step, weird
       if (dir == FORWARD) {
 	currentstep += MICROSTEPS/2;
-      } 
-      else {
+      } else {
 	currentstep -= MICROSTEPS/2;
       }
     } else {           // go to the next odd step
       if (dir == FORWARD) {
 	currentstep += MICROSTEPS;
-      }
-      else {
-	currentstep += MICROSTEPS;
+      } else {
+	currentstep -= MICROSTEPS;
       }
     }
   } else if (style == INTERLEAVE) {
