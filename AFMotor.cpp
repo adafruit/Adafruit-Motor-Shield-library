@@ -352,7 +352,7 @@ AF_Stepper::AF_Stepper(uint16_t steps, uint8_t num) {
 }
 
 void AF_Stepper::setSpeed(uint16_t rpm) {
-  usperstep = 60000000 / (revsteps * rpm);
+  usperstep = 60000000 / ((uint32_t)revsteps * (uint32_t)rpm);
   steppingcounter = 0;
 }
 
