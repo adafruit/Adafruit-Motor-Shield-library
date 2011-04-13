@@ -3,12 +3,12 @@
 // this code is public domain, enjoy!
 
 #include <AFMotor.h>
-#include <ServoTimer1.h>
+#include <Servo.h> 
 
 // DC motor on M2
 AF_DCMotor motor(2);
 // DC hobby servo
-ServoTimer1 servo1;
+Servo servo1;
 // Stepper motor on M3+M4 48 steps per revolution
 AF_Stepper stepper(48, 2);
 
