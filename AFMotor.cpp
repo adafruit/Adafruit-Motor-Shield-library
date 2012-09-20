@@ -4,11 +4,14 @@
 
 
 #if (ARDUINO >= 100)
- #include "Arduino.h"
+  #include "Arduino.h"
 #else
- #include <avr/io.h>
- #include "WProgram.h"
+  #if defined(__AVR__)
+    #include <avr/io.h>
+  #endif
+  #include "WProgram.h"
 #endif
+
 #include "AFMotor.h"
 
 
@@ -94,6 +97,8 @@ inline void initPWM1(uint8_t freq) {
     TCCR1A |= _BV(COM1A1) | _BV(WGM10); // fast PWM, turn on oc1a
     TCCR1B = (freq & 0x7) | _BV(WGM12);
     OCR1A = 0;
+#elif defined(__PIC32MX__)
+/// TODO: Fill this in for PIC32
 #else
    #error "This chip is not supported!"
 #endif
@@ -111,6 +116,8 @@ inline void setPWM1(uint8_t s) {
 #elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
     // on arduino mega, pin 11 is now PB5 (OC1A)
     OCR1A = s;
+#elif defined(__PIC32MX__)
+/// TODO: Fill this in for PIC32
 #else
    #error "This chip is not supported!"
 #endif
@@ -131,6 +138,8 @@ inline void initPWM2(uint8_t freq) {
     TCCR3A |= _BV(COM1C1) | _BV(WGM10); // fast PWM, turn on oc3c
     TCCR3B = (freq & 0x7) | _BV(WGM12);
     OCR3C = 0;
+#elif defined(__PIC32MX__)
+/// TODO: Fill this in for PIC32
 #else
    #error "This chip is not supported!"
 #endif
@@ -149,6 +158,8 @@ inline void setPWM2(uint8_t s) {
 #elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
     // on arduino mega, pin 11 is now PB5 (OC1A)
     OCR3C = s;
+#elif defined(__PIC32MX__)
+/// TODO: Fill this in for PIC32
 #else
    #error "This chip is not supported!"
 #endif
@@ -170,6 +181,8 @@ inline void initPWM3(uint8_t freq) {
     TCCR4B = (freq & 0x7) | _BV(WGM12);
     //TCCR4B = 1 | _BV(WGM12);
     OCR4A = 0;
+#elif defined(__PIC32MX__)
+/// TODO: Fill this in for PIC32
 #else
    #error "This chip is not supported!"
 #endif
@@ -187,6 +200,8 @@ inline void setPWM3(uint8_t s) {
 #elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
     // on arduino mega, pin 6 is now PH3 (OC4A)
     OCR4A = s;
+#elif defined(__PIC32MX__)
+/// TODO: Fill this in for PIC32
 #else
    #error "This chip is not supported!"
 #endif
@@ -210,6 +225,8 @@ inline void initPWM4(uint8_t freq) {
     TCCR3B = (freq & 0x7) | _BV(WGM12);
     //TCCR4B = 1 | _BV(WGM12);
     OCR3A = 0;
+#elif defined(__PIC32MX__)
+/// TODO: Fill this in for PIC32
 #else
    #error "This chip is not supported!"
 #endif
@@ -227,6 +244,8 @@ inline void setPWM4(uint8_t s) {
 #elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
     // on arduino mega, pin 6 is now PH3 (OC4A)
     OCR3A = s;
+#elif defined(__PIC32MX__)
+/// TODO: Fill this in for PIC32
 #else
    #error "This chip is not supported!"
 #endif
