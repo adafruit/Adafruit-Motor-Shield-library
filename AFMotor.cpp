@@ -25,6 +25,7 @@ uint8_t microstepcurve[] = {0, 25, 50, 74, 98, 120, 141, 162, 180, 197, 212, 225
 #endif
 
 AFMotorController::AFMotorController(void) {
+    TimerInitalized = false;
 }
 
 void AFMotorController::enable(void) {
@@ -78,7 +79,6 @@ void AFMotorController::latch_tx(void) {
 
 static AFMotorController MC;
 
-
 /******************************************
                MOTORS
 ******************************************/
@@ -98,11 +98,46 @@ inline void initPWM1(uint8_t freq) {
     TCCR1B = (freq & 0x7) | _BV(WGM12);
     OCR1A = 0;
 #elif defined(__PIC32MX__)
-/// TODO: Fill this in for PIC32
+    #if defined(PIC32_USE_PIN9_FOR_M1_PWM)
+        // Make sure that pin 11 is an input, since we have tied together 9 and 11
+        pinMode(9, OUTPUT);
+        pinMode(11, INPUT);
+        if (!MC.TimerInitalized)
+        {   // Set up Timer2 for 80MHz counting fro 0 to 256
+            T2CON = 0x8000 | ((freq & 0x07) << 4); // ON=1, FRZ=0, SIDL=0, TGATE=0, TCKPS=<freq>, T32=0, TCS=0; // ON=1, FRZ=0, SIDL=0, TGATE=0, TCKPS=0, T32=0, TCS=0
+            TMR2 = 0x0000;
+            PR2 = 0x0100;
+            MC.TimerInitalized = true;
+        }
+         // Setup OC4 (pin 9) in PWM mode, with Timer2 as timebase
+        OC4CON = 0x8006;    // OC32 = 0, OCTSEL=0, OCM=6
+        OC4RS = 0x0000;
+        OC4R = 0x0000;
+    #elif defined(PIC32_USE_PIN10_FOR_M1_PWM)
+        // Make sure that pin 11 is an input, since we have tied together 9 and 11
+        pinMode(10, OUTPUT);
+        pinMode(11, INPUT);
+        if (!MC.TimerInitalized)
+        {   // Set up Timer2 for 80MHz counting fro 0 to 256
+            T2CON = 0x8000 | ((freq & 0x07) << 4); // ON=1, FRZ=0, SIDL=0, TGATE=0, TCKPS=<freq>, T32=0, TCS=0; // ON=1, FRZ=0, SIDL=0, TGATE=0, TCKPS=0, T32=0, TCS=0
+            TMR2 = 0x0000;
+            PR2 = 0x0100;
+            MC.TimerInitalized = true;
+        }
+         // Setup OC5 (pin 10) in PWM mode, with Timer2 as timebase
+        OC5CON = 0x8006;    // OC32 = 0, OCTSEL=0, OCM=6
+        OC5RS = 0x0000;
+        OC5R = 0x0000;
+    #else
+        // If we are not using PWM for pin 11, then just do digital
+        digitalWrite(11, LOW);
+    #endif
 #else
    #error "This chip is not supported!"
 #endif
-    pinMode(11, OUTPUT);
+    #if !defined(PIC32_USE_PIN9_FOR_M1_PWM) && !defined(PIC32_USE_PIN10_FOR_M1_PWM)
+        pinMode(11, OUTPUT);
+    #endif
 }
 
 inline void setPWM1(uint8_t s) {
@@ -117,7 +152,23 @@ inline void setPWM1(uint8_t s) {
     // on arduino mega, pin 11 is now PB5 (OC1A)
     OCR1A = s;
 #elif defined(__PIC32MX__)
-/// TODO: Fill this in for PIC32
+    #if defined(PIC32_USE_PIN9_FOR_M1_PWM)
+        // Set the OC4 (pin 9) PMW duty cycle from 0 to 255
+        OC4RS = s;
+    #elif defined(PIC32_USE_PIN10_FOR_M1_PWM)
+        // Set the OC5 (pin 10) PMW duty cycle from 0 to 255
+        OC5RS = s;
+    #else
+        // If we are not doing PWM output for M1, then just use on/off
+        if (s > 127)
+        {
+            digitalWrite(11, HIGH);
+        }
+        else
+        {
+            digitalWrite(11, LOW);
+        }
+    #endif
 #else
    #error "This chip is not supported!"
 #endif
@@ -139,7 +190,17 @@ inline void initPWM2(uint8_t freq) {
     TCCR3B = (freq & 0x7) | _BV(WGM12);
     OCR3C = 0;
 #elif defined(__PIC32MX__)
-/// TODO: Fill this in for PIC32
+    if (!MC.TimerInitalized)
+    {   // Set up Timer2 for 80MHz counting fro 0 to 256
+        T2CON = 0x8000 | ((freq & 0x07) << 4); // ON=1, FRZ=0, SIDL=0, TGATE=0, TCKPS=<freq>, T32=0, TCS=0; // ON=1, FRZ=0, SIDL=0, TGATE=0, TCKPS=0, T32=0, TCS=0
+        TMR2 = 0x0000;
+        PR2 = 0x0100;
+        MC.TimerInitalized = true;
+    }
+    // Setup OC1 (pin3) in PWM mode, with Timer2 as timebase
+    OC1CON = 0x8006;    // OC32 = 0, OCTSEL=0, OCM=6
+    OC1RS = 0x0000;
+    OC1R = 0x0000;
 #else
    #error "This chip is not supported!"
 #endif
@@ -159,7 +220,8 @@ inline void setPWM2(uint8_t s) {
     // on arduino mega, pin 11 is now PB5 (OC1A)
     OCR3C = s;
 #elif defined(__PIC32MX__)
-/// TODO: Fill this in for PIC32
+    // Set the OC1 (pin3) PMW duty cycle from 0 to 255
+    OC1RS = s;
 #else
    #error "This chip is not supported!"
 #endif
@@ -182,7 +244,17 @@ inline void initPWM3(uint8_t freq) {
     //TCCR4B = 1 | _BV(WGM12);
     OCR4A = 0;
 #elif defined(__PIC32MX__)
-/// TODO: Fill this in for PIC32
+    if (!MC.TimerInitalized)
+    {   // Set up Timer2 for 80MHz counting fro 0 to 256
+        T2CON = 0x8000 | ((freq & 0x07) << 4); // ON=1, FRZ=0, SIDL=0, TGATE=0, TCKPS=<freq>, T32=0, TCS=0; // ON=1, FRZ=0, SIDL=0, TGATE=0, TCKPS=0, T32=0, TCS=0
+        TMR2 = 0x0000;
+        PR2 = 0x0100;
+        MC.TimerInitalized = true;
+    }
+    // Setup OC3 (pin 6) in PWM mode, with Timer2 as timebase
+    OC3CON = 0x8006;    // OC32 = 0, OCTSEL=0, OCM=6
+    OC3RS = 0x0000;
+    OC3R = 0x0000;
 #else
    #error "This chip is not supported!"
 #endif
@@ -201,7 +273,8 @@ inline void setPWM3(uint8_t s) {
     // on arduino mega, pin 6 is now PH3 (OC4A)
     OCR4A = s;
 #elif defined(__PIC32MX__)
-/// TODO: Fill this in for PIC32
+    // Set the OC3 (pin 6) PMW duty cycle from 0 to 255
+    OC3RS = s;
 #else
    #error "This chip is not supported!"
 #endif
@@ -226,7 +299,17 @@ inline void initPWM4(uint8_t freq) {
     //TCCR4B = 1 | _BV(WGM12);
     OCR3A = 0;
 #elif defined(__PIC32MX__)
-/// TODO: Fill this in for PIC32
+    if (!MC.TimerInitalized)
+    {   // Set up Timer2 for 80MHz counting fro 0 to 256
+        T2CON = 0x8000 | ((freq & 0x07) << 4); // ON=1, FRZ=0, SIDL=0, TGATE=0, TCKPS=<freq>, T32=0, TCS=0; // ON=1, FRZ=0, SIDL=0, TGATE=0, TCKPS=0, T32=0, TCS=0
+        TMR2 = 0x0000;
+        PR2 = 0x0100;
+        MC.TimerInitalized = true;
+    }
+    // Setup OC2 (pin 5) in PWM mode, with Timer2 as timebase
+    OC2CON = 0x8006;    // OC32 = 0, OCTSEL=0, OCM=6
+    OC2RS = 0x0000;
+    OC2R = 0x0000;
 #else
    #error "This chip is not supported!"
 #endif
@@ -245,7 +328,8 @@ inline void setPWM4(uint8_t s) {
     // on arduino mega, pin 6 is now PH3 (OC4A)
     OCR3A = s;
 #elif defined(__PIC32MX__)
-/// TODO: Fill this in for PIC32
+    // Set the OC2 (pin 5) PMW duty cycle from 0 to 255
+    OC2RS = s;
 #else
    #error "This chip is not supported!"
 #endif
@@ -308,7 +392,7 @@ void AF_DCMotor::run(uint8_t cmd) {
     MC.latch_tx();
     break;
   case RELEASE:
-    latch_state &= ~_BV(a);
+    latch_state &= ~_BV(a);     // A and B both low
     latch_state &= ~_BV(b); 
     MC.latch_tx();
     break;
@@ -351,8 +435,8 @@ AF_Stepper::AF_Stepper(uint16_t steps, uint8_t num) {
     digitalWrite(3, HIGH);
 
     // use PWM for microstepping support
-    initPWM1(MOTOR12_64KHZ);
-    initPWM2(MOTOR12_64KHZ);
+    initPWM1(STEPPER1_PWM_RATE);
+    initPWM2(STEPPER1_PWM_RATE);
     setPWM1(255);
     setPWM2(255);
 
@@ -369,8 +453,8 @@ AF_Stepper::AF_Stepper(uint16_t steps, uint8_t num) {
 
     // use PWM for microstepping support
     // use PWM for microstepping support
-    initPWM3(1);
-    initPWM4(1);
+    initPWM3(STEPPER2_PWM_RATE);
+    initPWM4(STEPPER2_PWM_RATE);
     setPWM3(255);
     setPWM4(255);
   }
