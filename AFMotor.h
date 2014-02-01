@@ -7,7 +7,7 @@
  * For PIC32, all features work properly with the following two exceptions:
  *
  * 1) Because the PIC32 only has 5 PWM outputs, and the AFMotor shield needs 6
- *    to completely operate (for for motor outputs and two for RC servos), the
+ *    to completely operate (four for motor outputs and two for RC servos), the
  *    M1 motor output will not have PWM ability when used with a PIC32 board.
  *    However, there is a very simple workaround. If you need to drive a stepper
  *    or DC motor with PWM on motor output M1, you can use the PWM output on pin
