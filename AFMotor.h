@@ -33,25 +33,25 @@
 #define _AFMotor_h_
 
 #include <inttypes.h>
-#if defined(__AVR__)
-    #include <avr/io.h>
+//#if defined(__AVR__)
+   // #include <avr/io.h>
 
     //#define MOTORDEBUG 1
 
-    #define MICROSTEPS 16                       // 8 or 16
+   // #define MICROSTEPS 16                       // 8 or 16
 
-    #define MOTOR12_64KHZ _BV(CS20)             // no prescale
-    #define MOTOR12_8KHZ _BV(CS21)              // divide by 8
-    #define MOTOR12_2KHZ _BV(CS21) | _BV(CS20)  // divide by 32
-    #define MOTOR12_1KHZ _BV(CS22)              // divide by 64
+    //#define MOTOR12_64KHZ _BV(CS20)             // no prescale
+    //#define MOTOR12_8KHZ _BV(CS21)              // divide by 8
+    //#define MOTOR12_2KHZ _BV(CS21) | _BV(CS20)  // divide by 32
+    //#define MOTOR12_1KHZ _BV(CS22)              // divide by 64
 
-    #define MOTOR34_64KHZ _BV(CS00)             // no prescale
-    #define MOTOR34_8KHZ _BV(CS01)              // divide by 8
-    #define MOTOR34_1KHZ _BV(CS01) | _BV(CS00)  // divide by 64
+    //#define MOTOR34_64KHZ _BV(CS00)             // no prescale
+   // #define MOTOR34_8KHZ _BV(CS01)              // divide by 8
+   // #define MOTOR34_1KHZ _BV(CS01) | _BV(CS00)  // divide by 64
     
-    #define DC_MOTOR_PWM_RATE   MOTOR34_8KHZ    // PWM rate for DC motors
-    #define STEPPER1_PWM_RATE   MOTOR12_64KHZ   // PWM rate for stepper 1
-    #define STEPPER2_PWM_RATE   MOTOR34_64KHZ   // PWM rate for stepper 2
+   // #define DC_MOTOR_PWM_RATE   MOTOR34_8KHZ    // PWM rate for DC motors
+   // #define STEPPER1_PWM_RATE   MOTOR12_64KHZ   // PWM rate for stepper 1
+   // #define STEPPER2_PWM_RATE   MOTOR34_64KHZ   // PWM rate for stepper 2
     
 #elif defined(__PIC32MX__)
     //#define MOTORDEBUG 1
