@@ -2,6 +2,7 @@
 // copyright Adafruit Industries LLC, 2009
 // this code is public domain, enjoy!
 
+// added Leonardo support - Michael Margolis, 24 July 2012 
 
 #if (ARDUINO >= 100)
   #include "Arduino.h"
@@ -97,6 +98,10 @@ inline void initPWM1(uint8_t freq) {
     TCCR1A |= _BV(COM1A1) | _BV(WGM10); // fast PWM, turn on oc1a
     TCCR1B = (freq & 0x7) | _BV(WGM12);
     OCR1A = 0;
+#elif defined(__AVR_ATmega32U4__) // Leonardo (mem 24 July 2012)
+    // use PWM on timer0A (Arduino pin #11 on leo)  
+  TCCR0A |= _BV(COM0A1) | _BV(WGM00) | _BV(WGM01); // fast PWM, turn on OC0A
+    OCR0A = 0;
 #elif defined(__PIC32MX__)
     #if defined(PIC32_USE_PIN9_FOR_M1_PWM)
         // Make sure that pin 11 is an input, since we have tied together 9 and 11
@@ -151,6 +156,9 @@ inline void setPWM1(uint8_t s) {
 #elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
     // on arduino mega, pin 11 is now PB5 (OC1A)
     OCR1A = s;
+#elif defined(__AVR_ATmega32U4__) // Leonardo (mem 24 July 2012)
+    // use PWM on timer0A (Arduino pin #11 pn leo)
+  OCR0A = s;
 #elif defined(__PIC32MX__)
     #if defined(PIC32_USE_PIN9_FOR_M1_PWM)
         // Set the OC4 (pin 9) PMW duty cycle from 0 to 255
@@ -189,6 +197,10 @@ inline void initPWM2(uint8_t freq) {
     TCCR3A |= _BV(COM1C1) | _BV(WGM10); // fast PWM, turn on oc3c
     TCCR3B = (freq & 0x7) | _BV(WGM12);
     OCR3C = 0;
+#elif defined(__AVR_ATmega32U4__) // Leonardo (mem 24 July 2012)
+    // use PWM from timer0B (pin 3 on leo)  
+    TCCR0A |= _BV(COM0B1) | _BV(WGM00) | _BV(WGM01); // fast PWM, turn on OC0B
+    OCR0B = 0;
 #elif defined(__PIC32MX__)
     if (!MC.TimerInitalized)
     {   // Set up Timer2 for 80MHz counting fro 0 to 256
@@ -219,6 +231,9 @@ inline void setPWM2(uint8_t s) {
 #elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
     // on arduino mega, pin 11 is now PB5 (OC1A)
     OCR3C = s;
+#elif defined(__AVR_ATmega32U4__) // Leonardo (mem 24 July 2012)
+    // use PWM from timer0B (pin 3 pin Leo)  
+  OCR0B = s;
 #elif defined(__PIC32MX__)
     // Set the OC1 (pin3) PMW duty cycle from 0 to 255
     OC1RS = s;
@@ -243,6 +258,11 @@ inline void initPWM3(uint8_t freq) {
     TCCR4B = (freq & 0x7) | _BV(WGM12);
     //TCCR4B = 1 | _BV(WGM12);
     OCR4A = 0;
+#elif defined(__AVR_ATmega32U4__) // Leonardo (mem 24 July 2012)
+    // use PWM from timer4D (leo pin 6)   
+  TCCR4B = _BV(CS42) | _BV(CS41) ; //|  _BV(CS40);
+  TCCR4C = _BV(PWM4D) |_BV(COM4D1);
+    TCCR4D = _BV(WGM40);
 #elif defined(__PIC32MX__)
     if (!MC.TimerInitalized)
     {   // Set up Timer2 for 80MHz counting fro 0 to 256
@@ -272,6 +292,9 @@ inline void setPWM3(uint8_t s) {
 #elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
     // on arduino mega, pin 6 is now PH3 (OC4A)
     OCR4A = s;
+#elif defined(__AVR_ATmega32U4__) // Leonardo (mem 24 July 2012)
+    // use PWM from timer4D (leo pin 6)
+  OCR4D = s;
 #elif defined(__PIC32MX__)
     // Set the OC3 (pin 6) PMW duty cycle from 0 to 255
     OC3RS = s;
@@ -297,6 +320,13 @@ inline void initPWM4(uint8_t freq) {
     TCCR3A |= _BV(COM1A1) | _BV(WGM10); // fast PWM, turn on oc3a
     TCCR3B = (freq & 0x7) | _BV(WGM12);
     //TCCR4B = 1 | _BV(WGM12);
+    OCR3A = 0;
+#elif defined(__AVR_ATmega32U4__) // Leonardo (mem  8 aug 2012)
+    // use PWM from timer3A (leo pin 5) 
+  TCCR3B = 0;
+  TCCR3B |=  _BV(CS31) | _BV(CS30); 
+    TCCR3A = 0;
+    TCCR3A |= _BV(COM3A1) | _BV(WGM30); //turn on oc3a
     OCR3A = 0;
 #elif defined(__PIC32MX__)
     if (!MC.TimerInitalized)
@@ -327,6 +357,9 @@ inline void setPWM4(uint8_t s) {
 #elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
     // on arduino mega, pin 6 is now PH3 (OC4A)
     OCR3A = s;
+#elif defined(__AVR_ATmega32U4__) // Leonardo (mem 24 July 2012)
+    // use PWM from timer3A (leo pin 5)
+  OCR3A = s;
 #elif defined(__PIC32MX__)
     // Set the OC2 (pin 5) PMW duty cycle from 0 to 255
     OC2RS = s;

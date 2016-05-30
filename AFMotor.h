@@ -52,8 +52,45 @@
     #define DC_MOTOR_PWM_RATE   MOTOR34_8KHZ    // PWM rate for DC motors
     #define STEPPER1_PWM_RATE   MOTOR12_64KHZ   // PWM rate for stepper 1
     #define STEPPER2_PWM_RATE   MOTOR34_64KHZ   // PWM rate for stepper 2
+
+    #if defined(__AVR_ATmega8__) || \
+      defined(__AVR_ATmega48__) || \
+      defined(__AVR_ATmega88__) || \
+      defined(__AVR_ATmega168__) || \
+      defined(__AVR_ATmega328P__)
+      #define MOTOR12_64KHZ _BV(CS20)  // no prescale
+      #define MOTOR12_8KHZ _BV(CS21)   // divide by 8
+      #define MOTOR12_2KHZ _BV(CS21) | _BV(CS20) // divide by 32
+      #define MOTOR12_1KHZ _BV(CS22)  // divide by 64
+
+    #elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+      #define MOTOR12_64KHZ _BV(CS10)  // no prescale
+      #define MOTOR12_8KHZ _BV(CS11)   // divide by 8
+      #define MOTOR12_2KHZ _BV(CS11) | _BV(CS20) // divide by 32
+      #define MOTOR12_1KHZ _BV(CS12)  // divide by 64
+
+    #elif defined(__AVR_ATmega32U4__) // Leonardo (mem 22 Nov 2012)
+      #define MOTOR12_64KHZ _BV(CS00)  // no prescale
+      #define MOTOR12_8KHZ _BV(CS01)   // divide by 8
+      #define MOTOR12_2KHZ _BV(CS01) | _BV(CS20) // divide by 32
+      #define MOTOR12_1KHZ _BV(CS02)  // divide by 64
+    #endif
+
+    #if defined(__AVR_ATmega8__) || \
+        defined(__AVR_ATmega48__) || \
+        defined(__AVR_ATmega88__) || \
+        defined(__AVR_ATmega168__) || \ 
+        defined(__AVR_ATmega328P__) 
+    #define MOTOR34_64KHZ _BV(CS00)  // no prescale
+    #define MOTOR34_8KHZ _BV(CS01)   // divide by 8
+    #define MOTOR34_1KHZ _BV(CS01) | _BV(CS00)  // divide by 64
+    #else
+    #define MOTOR34_64KHZ _BV(CS40)  // no prescale
+    #define MOTOR34_8KHZ _BV(CS41)   // divide by 8
+    #define MOTOR34_1KHZ _BV(CS41) | _BV(CS40)  // divide by 64
+    #endif
     
-#elif defined(__PIC32MX__)
+    #elif defined(__PIC32MX__)
     //#define MOTORDEBUG 1
     
     // Uncomment the one of following lines if you have put a jumper from 

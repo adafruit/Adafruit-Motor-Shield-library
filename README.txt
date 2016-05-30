@@ -1,5 +1,7 @@
-This is the August 12, 2009 Adafruit Motor shield firmware with basic Microstepping support. Works with all Arduinos and the Mega
+This is the August 12, 2009 Adafruit Motor shield firmware with basic Microstepping support. Works with all Arduinos and the Mega and Leonardo
 Updated in September 2012 for use on PIC32 architecture (chipKIT/MPIDE)
+
+Modified for the Leonardo by Michael Margolis
 
 For more information on the shield, please visit https://learn.adafruit.com/adafruit-motor-shield
 
