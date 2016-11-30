@@ -87,6 +87,7 @@ inline void initPWM1(uint8_t freq) {
     defined(__AVR_ATmega48__) || \
     defined(__AVR_ATmega88__) || \
     defined(__AVR_ATmega168__) || \
+	defined(__AVR_ATmega32U4__) || \
     defined(__AVR_ATmega328P__)
     // use PWM from timer2A on PB3 (Arduino pin #11)
     TCCR2A |= _BV(COM2A1) | _BV(WGM20) | _BV(WGM21); // fast PWM, turn on oc2a
@@ -145,6 +146,7 @@ inline void setPWM1(uint8_t s) {
     defined(__AVR_ATmega48__) || \
     defined(__AVR_ATmega88__) || \
     defined(__AVR_ATmega168__) || \
+	defined(__AVR_ATmega32U4__) || \
     defined(__AVR_ATmega328P__)
     // use PWM from timer2A on PB3 (Arduino pin #11)
     OCR2A = s;
@@ -179,6 +181,7 @@ inline void initPWM2(uint8_t freq) {
     defined(__AVR_ATmega48__) || \
     defined(__AVR_ATmega88__) || \
     defined(__AVR_ATmega168__) || \
+	defined(__AVR_ATmega32U4__) || \
     defined(__AVR_ATmega328P__)
     // use PWM from timer2B (pin 3)
     TCCR2A |= _BV(COM2B1) | _BV(WGM20) | _BV(WGM21); // fast PWM, turn on oc2b
@@ -213,6 +216,7 @@ inline void setPWM2(uint8_t s) {
     defined(__AVR_ATmega48__) || \
     defined(__AVR_ATmega88__) || \
     defined(__AVR_ATmega168__) || \
+	defined(__AVR_ATmega32U4__) || \
     defined(__AVR_ATmega328P__)
     // use PWM from timer2A on PB3 (Arduino pin #11)
     OCR2B = s;
@@ -232,6 +236,7 @@ inline void initPWM3(uint8_t freq) {
     defined(__AVR_ATmega48__) || \
     defined(__AVR_ATmega88__) || \
     defined(__AVR_ATmega168__) || \
+	defined(__AVR_ATmega32U4__) || \
     defined(__AVR_ATmega328P__)
     // use PWM from timer0A / PD6 (pin 6)
     TCCR0A |= _BV(COM0A1) | _BV(WGM00) | _BV(WGM01); // fast PWM, turn on OC0A
@@ -266,6 +271,7 @@ inline void setPWM3(uint8_t s) {
     defined(__AVR_ATmega48__) || \
     defined(__AVR_ATmega88__) || \
     defined(__AVR_ATmega168__) || \
+	defined(__AVR_ATmega32U4__) || \
     defined(__AVR_ATmega328P__)
     // use PWM from timer0A on PB3 (Arduino pin #6)
     OCR0A = s;
@@ -287,6 +293,7 @@ inline void initPWM4(uint8_t freq) {
     defined(__AVR_ATmega48__) || \
     defined(__AVR_ATmega88__) || \
     defined(__AVR_ATmega168__) || \
+	defined(__AVR_ATmega32U4__) || \
     defined(__AVR_ATmega328P__)
     // use PWM from timer0B / PD5 (pin 5)
     TCCR0A |= _BV(COM0B1) | _BV(WGM00) | _BV(WGM01); // fast PWM, turn on oc0a
@@ -321,6 +328,7 @@ inline void setPWM4(uint8_t s) {
     defined(__AVR_ATmega48__) || \
     defined(__AVR_ATmega88__) || \
     defined(__AVR_ATmega168__) || \
+	defined(__AVR_ATmega32U4__) || \
     defined(__AVR_ATmega328P__)
     // use PWM from timer0A on PB3 (Arduino pin #6)
     OCR0B = s;
